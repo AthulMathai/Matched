@@ -20,20 +20,6 @@ export default async function Navbar() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  let notifications: any[] = [];
-
-  if (user) {
-    const { data } = await supabase
-      .from("notifications")
-      .select("id, title, body, is_read, created_at, link_path")
-      .eq("user_id", user.id)
-      .eq("is_read", false)
-      .order("created_at", { ascending: false })
-      .limit(20);
-
-    notifications = data || [];
-  }
-
   return (
     <header className="sticky top-0 z-40 border-b border-slate-800/10 bg-white/85 backdrop-blur-xl dark:border-slate-800/80 dark:bg-slate-950/85">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 md:px-5 md:py-4">
@@ -65,12 +51,7 @@ export default async function Navbar() {
             ))}
           </nav>
 
-          {user ? (
-            <NotificationBell
-              currentUserId={user.id}
-              notifications={notifications}
-            />
-          ) : null}
+          {user ? <NotificationBell /> : null}
 
           <div className="hidden md:block">
             <ThemeToggle />
