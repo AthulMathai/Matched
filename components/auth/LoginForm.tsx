@@ -29,7 +29,10 @@ export default function LoginForm({ action }: LoginFormProps) {
       setError("");
 
       const supabase = createClient();
-      const redirectTo = `${window.location.origin}/auth/callback`;
+      const siteUrl =
+        process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+
+      const redirectTo = `${siteUrl}/auth/callback`;
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",

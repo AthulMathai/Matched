@@ -56,11 +56,15 @@ export default function NotificationBell() {
 
     const result = await response.json();
 
-    setNotifications(Array.isArray(result.notifications) ? result.notifications : []);
+    setNotifications(
+      Array.isArray(result.notifications) ? result.notifications : [],
+    );
     setConnectionRequests(
       Array.isArray(result.connectionRequests) ? result.connectionRequests : [],
     );
-    setPartyInvites(Array.isArray(result.partyInvites) ? result.partyInvites : []);
+    setPartyInvites(
+      Array.isArray(result.partyInvites) ? result.partyInvites : [],
+    );
   }
 
   async function closeNotification(notificationId: string) {
@@ -141,7 +145,7 @@ export default function NotificationBell() {
   useEffect(() => {
     loadNotifications();
 
-    const pollTimer = window.setInterval(loadNotifications, 1500);
+    const pollTimer = window.setInterval(loadNotifications, 2000);
 
     const channel = supabase
       .channel("notification-bell-live")
@@ -185,7 +189,7 @@ export default function NotificationBell() {
       <button
         type="button"
         onClick={() => setOpen((current) => !current)}
-        className="relative flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white font-black shadow-sm dark:border-slate-700 dark:bg-slate-900"
+        className="relative flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white font-black shadow-sm hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800"
         aria-label="Notifications"
       >
         🔔
@@ -198,129 +202,150 @@ export default function NotificationBell() {
       </button>
 
       {open ? (
-        <div className="absolute right-0 top-14 z-[300] w-[360px] max-w-[calc(100vw-24px)] rounded-3xl border border-slate-200 bg-white p-3 shadow-2xl dark:border-slate-700 dark:bg-slate-950">
-          <div className="mb-3 flex items-center justify-between">
-            <p className="font-black">Notifications</p>
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              className="rounded-xl border border-slate-200 px-3 py-1 text-sm font-black dark:border-slate-700"
-            >
-              Close
-            </button>
-          </div>
+        <>
+          <button
+            type="button"
+            aria-label="Close notifications"
+            onClick={() => setOpen(false)}
+            className="fixed inset-0 z-[250] bg-transparent"
+          />
 
-          <div className="max-h-[460px] space-y-3 overflow-y-auto">
-            {connectionRequests.map((request) => (
-              <div
-                key={request.id}
-                className="rounded-2xl border border-slate-200 p-3 dark:border-slate-700"
-              >
-                <p className="font-black">Friend request</p>
-                <p className="mt-1 text-sm text-slate-500">
-                  Someone sent you a friend request.
+          <div className="fixed left-3 right-3 top-[76px] z-[300] max-h-[calc(100dvh-96px)] overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-950 sm:absolute sm:left-auto sm:right-0 sm:top-14 sm:w-96 sm:max-w-[calc(100vw-24px)]">
+            <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-slate-800">
+              <div>
+                <p className="font-black">Notifications</p>
+                <p className="text-xs text-slate-500">
+                  {unreadCount > 0
+                    ? `${unreadCount} unread`
+                    : "No unread notifications"}
                 </p>
-
-                <div className="mt-3 flex gap-2">
-                  <button
-                    type="button"
-                    disabled={busyId === request.id}
-                    onClick={() =>
-                      respondConnectionRequest(request.id, "accepted")
-                    }
-                    className="rounded-xl bg-cyan-400 px-3 py-2 text-sm font-black text-slate-950 disabled:opacity-50"
-                  >
-                    Accept
-                  </button>
-
-                  <button
-                    type="button"
-                    disabled={busyId === request.id}
-                    onClick={() =>
-                      respondConnectionRequest(request.id, "declined")
-                    }
-                    className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-black disabled:opacity-50 dark:border-slate-700"
-                  >
-                    Decline
-                  </button>
-                </div>
               </div>
-            ))}
 
-            {partyInvites.map((invite) => (
-              <div
-                key={invite.id}
-                className="rounded-2xl border border-slate-200 p-3 dark:border-slate-700"
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="rounded-xl border border-slate-200 px-3 py-1 text-sm font-black hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-900"
               >
-                <p className="font-black">Team invite</p>
-                <p className="mt-1 text-sm text-slate-500">
-                  A friend invited you to join their match team.
-                </p>
+                Close
+              </button>
+            </div>
 
-                <div className="mt-3 flex gap-2">
-                  <button
-                    type="button"
-                    disabled={busyId === invite.id}
-                    onClick={() => respondPartyInvite(invite.id, "accepted")}
-                    className="rounded-xl bg-cyan-400 px-3 py-2 text-sm font-black text-slate-950 disabled:opacity-50"
-                  >
-                    Accept
-                  </button>
+            <div className="max-h-[calc(100dvh-170px)] space-y-3 overflow-y-auto p-3 sm:max-h-[460px]">
+              {connectionRequests.map((request) => (
+                <div
+                  key={request.id}
+                  className="rounded-2xl border border-slate-200 p-3 dark:border-slate-700"
+                >
+                  <p className="font-black">Friend request</p>
+                  <p className="mt-1 text-sm text-slate-500">
+                    Someone sent you a friend request.
+                  </p>
 
-                  <button
-                    type="button"
-                    disabled={busyId === invite.id}
-                    onClick={() => respondPartyInvite(invite.id, "declined")}
-                    className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-black disabled:opacity-50 dark:border-slate-700"
-                  >
-                    Decline
-                  </button>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      disabled={busyId === request.id}
+                      onClick={() =>
+                        respondConnectionRequest(request.id, "accepted")
+                      }
+                      className="rounded-xl bg-cyan-400 px-3 py-2 text-sm font-black text-slate-950 disabled:opacity-50"
+                    >
+                      {busyId === request.id ? "Accepting..." : "Accept"}
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={busyId === request.id}
+                      onClick={() =>
+                        respondConnectionRequest(request.id, "declined")
+                      }
+                      className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-black disabled:opacity-50 dark:border-slate-700"
+                    >
+                      Decline
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
 
-            {notifications.map((notification) => (
-              <div
-                key={notification.id}
-                className="rounded-2xl border border-slate-200 p-3 dark:border-slate-700"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="font-black">{notification.title}</p>
-                    {notification.body ? (
-                      <p className="mt-1 text-sm text-slate-500">
-                        {notification.body}
+              {partyInvites.map((invite) => (
+                <div
+                  key={invite.id}
+                  className="rounded-2xl border border-slate-200 p-3 dark:border-slate-700"
+                >
+                  <p className="font-black">Team invite</p>
+                  <p className="mt-1 text-sm text-slate-500">
+                    A friend invited you to join their match team.
+                  </p>
+
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      disabled={busyId === invite.id}
+                      onClick={() => respondPartyInvite(invite.id, "accepted")}
+                      className="rounded-xl bg-cyan-400 px-3 py-2 text-sm font-black text-slate-950 disabled:opacity-50"
+                    >
+                      {busyId === invite.id ? "Accepting..." : "Accept"}
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={busyId === invite.id}
+                      onClick={() => respondPartyInvite(invite.id, "declined")}
+                      className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-black disabled:opacity-50 dark:border-slate-700"
+                    >
+                      Decline
+                    </button>
+                  </div>
+                </div>
+              ))}
+
+              {notifications.map((notification) => (
+                <div
+                  key={notification.id}
+                  className="rounded-2xl border border-slate-200 p-3 dark:border-slate-700"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="break-words font-black">
+                        {notification.title}
                       </p>
-                    ) : null}
+
+                      {notification.body ? (
+                        <p className="mt-1 break-words text-sm text-slate-500">
+                          {notification.body}
+                        </p>
+                      ) : null}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => closeNotification(notification.id)}
+                      className="shrink-0 rounded-xl border border-slate-200 px-2 py-1 text-xs font-black hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-900"
+                    >
+                      ✕
+                    </button>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => closeNotification(notification.id)}
-                    className="rounded-xl border border-slate-200 px-2 py-1 text-xs font-black dark:border-slate-700"
-                  >
-                    ✕
-                  </button>
+                  {notification.link_path ? (
+                    <a
+                      href={notification.link_path}
+                      onClick={() => setOpen(false)}
+                      className="mt-3 inline-block rounded-xl bg-cyan-400 px-3 py-2 text-sm font-black text-slate-950"
+                    >
+                      Open
+                    </a>
+                  ) : null}
                 </div>
+              ))}
 
-                {notification.link_path ? (
-                  <a
-                    href={notification.link_path}
-                    className="mt-3 inline-block rounded-xl bg-cyan-400 px-3 py-2 text-sm font-black text-slate-950"
-                  >
-                    Open
-                  </a>
-                ) : null}
-              </div>
-            ))}
-
-            {unreadCount === 0 ? (
-              <div className="rounded-2xl bg-slate-50 p-4 text-sm font-bold text-slate-500 dark:bg-slate-900">
-                No notifications.
-              </div>
-            ) : null}
+              {unreadCount === 0 ? (
+                <div className="rounded-2xl bg-slate-50 p-4 text-sm font-bold text-slate-500 dark:bg-slate-900">
+                  No notifications.
+                </div>
+              ) : null}
+            </div>
           </div>
-        </div>
+        </>
       ) : null}
     </div>
   );
